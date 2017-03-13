@@ -188,7 +188,7 @@ To give users the ability to sign up and log in to our site, we'll need:
     <!-- bootstrap css -->
     <link type="text/css" rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
 
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
 
     <title>Simple Login</title>
@@ -207,7 +207,7 @@ To give users the ability to sign up and log in to our site, we'll need:
               <input type="password" name="password" class="form-control" placeholder="Password">
             </div>
             <div class="form-group">
-              <input type="submit" value="Sign Up" class="btn btn-primary">
+              <input type="submit" value="Sign Up" class="submit btn btn-primary">
             </div>
             <a href="/login">Login</a>
           </form>
@@ -234,13 +234,13 @@ To give users the ability to sign up and log in to our site, we'll need:
 
 ### 3. Submit your signup form to the server
 
-1. We've already told Express to serve a public folder with `app.use(express.static('/public'))`, so make a `public` folder and inside make a `scripts.js` file. Then link it with a `<script>` tag in your `signup.ejs`. Log something to the console to make sure they're connected.
+1. We've already told Express to serve a public folder with `app.use(express.static('/public'))`, so make a `public` folder and inside make an `app.js` file inside a `scripts` subfolder. Then link it with a `<script>` tag in your `signup.ejs`. Log something to the console to make sure they're connected.
 
 1. Set a submit listener on your signup form and use `$.post()` or `$.ajax()` to post the form data to `POST /signup`. (Consider using the `serialize()` method to quickly make a data string to send to the server. The serialized string will represent a data object: its keys will match the "name" attributes of your html form's inputs, and the each value in the object will be the value of the input field.)  Since the form is a DOM element, wrap your request in `$(document).ready(function(){ ... });`
 
   ```js
 
-  // scripts.js
+  // app.js
 
   // part of your code for this step:
     // select the form and serialize its data
@@ -296,13 +296,13 @@ To give users the ability to sign up and log in to our site, we'll need:
   var Schema = mongoose.Schema;
   ```
 
-4. Also in `user.js`, write your `userSchema`. For our simple example, users should have the properties **email** and **passwordDigest**.
+4. Also in `user.js`, write your `UserSchema`. For our simple example, users should have the properties **email** and **passwordDigest**.
 
   ```js
   // user.js
 
   // define user schema
-  var userSchema = new Schema({
+  var UserSchema = new Schema({
     email: String,
     passwordDigest: String
   });
@@ -310,13 +310,11 @@ To give users the ability to sign up and log in to our site, we'll need:
 
 5. Continuing in `user.js`, define a new, more secure create method for our `User` model that stores a hashed and salted version of the user's password instead of their exact password.
 
-   **Note:** We use `userSchema.statics` to define <a href="http://mongoosejs.com/docs/guide#statics" target="_blank">static methods</a> for our schema, ones that we'll call from the model (like `User.createSecure`).  The other option, `userSchema.methods`, defines <a href="http://mongoosejs.com/docs/guide#methods" target="_blank">instance methods</a> for our schema, which we could call from an individual instance of a user (like `princessPeach.checkPassword`). Static methods can hold any functionality related to the collection, while instance methods define functionality related to individual documents in the collection. You can think of instance methods like prototype methods in OOP!
+   **Note:** We use `UserSchema.statics` to define <a href="http://mongoosejs.com/docs/guide#statics" target="_blank">static methods</a> for our schema, ones that we'll call from the model (like `User.createSecure`).  The other option, `UserSchema.methods`, defines <a href="http://mongoosejs.com/docs/guide#methods" target="_blank">instance methods</a> for our schema, which we could call from an individual instance of a user (like `princessPeach.checkPassword`). Static methods can hold any functionality related to the collection, while instance methods define functionality related to individual documents in the collection. You can think of instance methods like prototype methods in OOP!
 
-  ```js
-  // user.js
-
-  // create a new user with secure (hashed) password
-  UserSchema.statics.createSecure = function (email, password, callback) {
+```javascript  
+// create a new user with secure (hashed) password
+UserSchema.statics.createSecure = function (email, password, callback) {
   // `this` references our user model, since this function will be called from the model itself
   // store it in variable `UserModel` because `this` changes context in nested callbacks
 
@@ -324,7 +322,7 @@ To give users the ability to sign up and log in to our site, we'll need:
 
   // hash password user enters at sign up
   bcrypt.genSalt(function (err, salt) {
-    console.log('salt: ', salt);  // changes every time
+  console.log('salt: ', salt);  // changes every time
     bcrypt.hash(password, salt, function (err, hash) {
 
       // create the new user (save to db) with hashed password
@@ -333,19 +331,19 @@ To give users the ability to sign up and log in to our site, we'll need:
         passwordDigest: hash
       }, callback);
     });
-   });
-  };
-  ```
+  });
+};
+```
 
   **NOTE:** `bcrypt`'s `genSalt` or `genSaltSync` function provides the salt we'll use to randomize the hashing algorithm. The `Sync` at the end of the second method name says we want it to run synchronously. It will complete before the code moves on, so we don't need to give it a callback to say what to do when it finishes.
 
-6. Continuing in `user.js`, define a `User` model using your `userSchema` and export the model (so we can require it in other parts of our application).
+6. Continuing in `user.js`, define a `User` model using your `UserSchema` and export the model (so we can require it in other parts of our application).
 
   ```js
   // user.js
 
   // define user model
-  var User = mongoose.model('User', userSchema);
+  var User = mongoose.model('User', UserSchema);
 
   // export user model
   module.exports = User;
@@ -368,7 +366,7 @@ To give users the ability to sign up and log in to our site, we'll need:
   // Sign up route - creates a new user with a secure password
   app.post('/users', function (req, res) {
     // use the email and password to authenticate here
-    User.createSecure(req.body.email, req.body.password, function (err, user) {
+    db.User.createSecure(req.body.email, req.body.password, function (err, user) {
       res.json(user);
     });
   });
@@ -392,9 +390,9 @@ To give users the ability to sign up and log in to our site, we'll need:
     <!-- bootstrap css -->
     <link type="text/css" rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
 
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
-    <script src="scripts.js"></script>
+    <script src="scripts/app.js"></script>
 
     <title>Simple Login</title>
   </head>
@@ -413,7 +411,7 @@ To give users the ability to sign up and log in to our site, we'll need:
               <input type="password" name="password" class="form-control" placeholder="Password">
             </div>
             <div class="form-group">
-              <input type="submit" value="Log In" class="btn btn-primary">
+              <input type="submit" value="Log In" class="login btn btn-primary">
             </div>
             <a href="/signup">Sign Up</a>
           </form>
@@ -438,29 +436,29 @@ To give users the ability to sign up and log in to our site, we'll need:
 
     We'll split these tasks between the main server code and the user schema.
 
-1. Add a method to the user schema that checks whether a plain text password (like from a form) "matches" the passwordDigest stored in a specific user's database document. It will need to use bcrypt to `compare` or `compareSync` (synchronously compare) the two forms of the password.   We'll call this method once we have a specific user from the database, so put it on `userSchema.methods`.
+1. Add a method to the user schema that checks whether a plain text password (like from a form) "matches" the passwordDigest stored in a specific user's database document. It will need to use bcrypt to `compare` or `compareSync` (synchronously compare) the two forms of the password.   We'll call this method once we have a specific user from the database, so put it on `UserSchema.methods`.
 
   ```js
   // models/user.js
 
   // compare password user enters with hashed password (`passwordDigest`)
-  userSchema.methods.checkPassword = function (password) {
+  UserSchema.methods.checkPassword = function (password) {
     // run hashing algorithm (with salt) on password user enters in order to compare with `passwordDigest`
     return bcrypt.compareSync(password, this.passwordDigest);
   };
 
   ```
 
-1. Add another method that does full authentication based on an email and a password. It will also take a callback, so when our server uses the `authenticate` method, the server code can specifiy what should happen next. This method will be called from the `User` model, since it will be looking up a user instance, not starting with one. It has to be added on `userSchema.statics`.
+1. Add another method that does full authentication based on an email and a password. It will also take a callback, so when our server uses the `authenticate` method, the server code can specifiy what should happen next. This method will be called from the `User` model, since it will be looking up a user instance, not starting with one. It has to be added on `UserSchema.statics`.
 
    ```js
 
    // models/user.js
 
    // authenticate user (when user logs in)
-   userSchema.statics.authenticate = function (email, password, callback) {
+   UserSchema.statics.authenticate = function (email, password, callback) {
      // find user by email entered at log in
-     // remember `this` refers to the User for methods defined on userSchema.statics
+     // remember `this` refers to the User for methods defined on UserSchema.statics
      this.findOne({email: email}, function (err, foundUser) {
        console.log(foundUser);
 
@@ -488,7 +486,7 @@ To give users the ability to sign up and log in to our site, we'll need:
   // authenticate the user
   app.post('/sessions', function (req, res) {
     // call authenticate function to check if password user entered is correct
-    User.authenticate(req.body.email, req.body.password, function (err, user) {
+    db.User.authenticate(req.body.email, req.body.password, function (err, user) {
       res.json(user);
     });
   });
@@ -567,8 +565,8 @@ To give users the ability to sign up and log in to our site, we'll need:
   // show user profile page
   app.get('/profile', function (req, res) {
     // find the user currently logged in
-    User.findOne({_id: req.session.userId}, function (err, currentUser) {
-      res.render('user-show.ejs', {user: currentUser})
+    db.User.findOne({_id: req.session.userId}, function (err, currentUser) {
+      res.render('profile.ejs', {user: currentUser})
     });
   });
   ```
@@ -630,7 +628,7 @@ Things don't always go right, and we need our apps to respond nicely when they d
     // adds a currentUser method to the request (req) that can find the user currently logged in based on the request's `session.userId`
     app.use('/', function (req, res, next) {    
       req.currentUser = function (callback) {
-        User.findOne({_id: req.session.userId}, function (err, user) {
+        db.User.findOne({_id: req.session.userId}, function (err, user) {
           if (!user) {
             callback("No User Found", null)
           } else {
