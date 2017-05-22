@@ -91,7 +91,7 @@ To give users the ability to sign up and log in to our site, we'll need:
 * <a href="https://github.com/ncb000gt/node.bcrypt.js" target="_blank">**bcrypt:**</a> for hashing users' passwords
 
 
-####Here's the plan
+#### Here's the plan
 
 * Signup
   * Make a signup form
