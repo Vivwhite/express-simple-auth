@@ -32,7 +32,6 @@ Controlling access to data is a key part of many modern web applications. Rails 
 * Create an express application with RESTful routes.
 * Set up schemas and models with Mongoose.
 * CRUD data in a MongoDB database through Mongoose.  
-* Describe the authentication strategy used with `has_secure_password` from Ruby on Rails.
 
 
 ### Local Authentication
